@@ -10,60 +10,46 @@ class VendingMachine:
     DRINK_PRICE = 2         # This cannot ever be less than 0
 
     def __init__(self) -> None:
-        self._accepted_coins = 0
-        self._inventory = [self.MAX_STOCKED] * self.NUMBER_OF_DRINKS
+        self.accepted_coins = 0
+        self.inventory = [self.MAX_STOCKED] * self.NUMBER_OF_DRINKS
+        self.dispensed_drinks = 0
     
-    @property
-    def accepted_coins(self):
-        return self._accepted_coins
-
-    @accepted_coins.setter
-    def accepted_coins(self, val):
-        raise AttributeError("Cannot manually set number of accepted coins")
-
-    @property
-    def inventory(self):
-        return self._inventory
-
-    @inventory.setter
-    def inventory(self, val):
-        raise AttributeError("Cannot manually set inventory values")
-
     def accept_coin(self):
-        self._accepted_coins += 1
+        self.accepted_coins += 1
 
-    def dispense_coins(self):
-        dispensed_coins = self._accepted_coins
-        self._accepted_coins = 0
+    def return_coins(self):
+        dispensed_coins = self.accepted_coins
+        self.accepted_coins = 0
         return dispensed_coins
 
     def dispense_drink(self, selected_drink):
-        if self._accepted_coins < self.DRINK_PRICE:
+        if self.accepted_coins < self.DRINK_PRICE:
             raise ValueError("Not enough coins")
-        elif self._inventory[selected_drink] <= 0:
+        elif self.inventory[selected_drink] <= 0:
             raise ValueError("Selected drink is out of stock")
 
-        self._inventory[selected_drink] -= 1
-        self._accepted_coins -= self.DRINK_PRICE
-        return self.dispense_coins()
+        self.inventory[selected_drink] -= 1
+        self.dispensed_drinks += 1
+        self.accepted_coins -= self.DRINK_PRICE
+        return self.return_coins()
 
 
-def create_app():
-    app = Flask("vendomatic")
-    #vm = VendingMachine()
+def create_vendomatic():
+    vendomatic = Flask("vendomatic")
+    vm = VendingMachine()
 
-    @app.route("/", methods=["PUT", "DELETE"])
+    @vendomatic.route("/", methods=["PUT", "DELETE"])
     def home():
         if request.method == "PUT":
-            return "", 204, {"Content-Type": "application/json"}
+            return "", 204, {"X-Coins": 1}
         elif request.method == "DELETE":
             return "", 204, {"Content-Type": "application/json"}
 
 
-    @app.get("/inventory")
+    @vendomatic.get("/inventory")
     def get_inventory():
         response = flask.Response("inventory response")
         response.status_code = 200
         return response
 
-    return app
+    return vendomatic

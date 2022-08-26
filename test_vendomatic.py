@@ -5,19 +5,22 @@ from typing import Type
 
 
 @pytest.fixture
-def app():
-    app = vom.create_app()
-    yield app
+def vendomatic():
+    vendomatic = vom.create_vendomatic()
+    yield vendomatic
 
 @pytest.fixture
-def test_client(app):
-    yield app.test_client()
+def test_client(vendomatic):
+    test_client = vendomatic.test_client()
+    yield test_client
 
+# for vending machine tests
 @pytest.fixture
 def vm():
     vm = vom.VendingMachine()
     yield vm
 
+# for vending machine interface tests
 @pytest.fixture
 def cvm():
     cvm = vom.VendingMachine()
@@ -38,7 +41,7 @@ def test_accept_coin(vm):
 def test_dispense_coins(vm):
     vm.accept_coin()
     total_coins = vm.accepted_coins
-    dispensed_coins = vm.dispense_coins()
+    dispensed_coins = vm.return_coins()
     assert dispensed_coins == total_coins
 
 def test_dispense_drink(vm):
@@ -71,7 +74,7 @@ def test_home_put(test_client, cvm):
 
 def test_home_delete(test_client, cvm):
     response = test_client.delete("/")
-    dispensed_coins = cvm.dispense_coins()
+    dispensed_coins = cvm.return_coins()
     assert response.status_code == 204
     assert response.headers["X-Coins"] == str(dispensed_coins)
 
@@ -125,7 +128,7 @@ def test_inventory_id_put_oos(test_client, cvm):
 def test_inventory_id_put_nec(test_client, cvm):
     # make sure the vending machine has 0 coins
     test_client.delete("/")
-    cvm.dispense_coins()
+    cvm.return_coins()
 
     # attempt to buy something
     response = test_client.put("/inventory/0")
