@@ -1,7 +1,6 @@
 from flask import Flask
 from flask import request
 from flask import Response
-import json
 
 
 class VendingMachine:
@@ -54,7 +53,7 @@ def create_app():
 
     @app.route("/inventory", methods=["GET"])
     def inventory():
-        return json.dumps(vm.inventory), 200, {"Content-Type": "application/json"}
+        return vm.inventory, 200
 
     @app.route("/inventory/<int:index>", methods=["GET", "PUT"])
     def inventory_id(index):
