@@ -34,11 +34,11 @@ class VendingMachine:
         return self.return_coins()
 
 
-def create_vendomatic():
-    vendomatic = Flask("vendomatic")
+def create_app():
+    app = Flask("vendomatic")
     vm = VendingMachine()
 
-    @vendomatic.route("/", methods=["PUT", "DELETE"])
+    @app.route("/", methods=["PUT", "DELETE"])
     def home():
         if request.method == "PUT" and request.json["coin"] == 1:
             vm.accept_coin()
@@ -50,12 +50,12 @@ def create_vendomatic():
             return "", 404
 
 
-    @vendomatic.route("/inventory", methods=["GET"])
+    @app.route("/inventory", methods=["GET"])
     def inventory():
         return vm.inventory, 200
 
-    @vendomatic.route("/inventory/<int:id>", methods=["GET", "PUT"])
+    @app.route("/inventory/<int:id>", methods=["GET", "PUT"])
     def inventory_id():
         return "", 999
 
-    return vendomatic
+    return app

@@ -5,13 +5,13 @@ from typing import Type
 
 
 @pytest.fixture
-def vendomatic():
-    vendomatic = vom.create_vendomatic()
-    yield vendomatic
+def app():
+    app = vom.create_app()
+    yield app
 
 @pytest.fixture
-def test_client(vendomatic):
-    test_client = vendomatic.test_client()
+def test_client(app):
+    test_client = app.test_client()
     yield test_client
 
 # for vending machine tests
