@@ -40,9 +40,10 @@ def create_app():
 
     @app.route("/", methods=["PUT", "DELETE"])
     def home():
-        if request.method == "PUT" and request.json["coin"] == 1:
-            vm.accept_coin()
-            return "", 204, {"X-Coins": vm.accepted_coins}
+        if request.method == "PUT" and request.headers["Content-Type"] == "application/json":
+            if request.json["coin"] == 1:
+                vm.accept_coin()
+                return "", 204, {"X-Coins": vm.accepted_coins}
         elif request.method == "DELETE":
             returned_coins = vm.return_coins()
             return "", 204, {"X-Coins": returned_coins}
@@ -54,8 +55,10 @@ def create_app():
     def inventory():
         return vm.inventory, 200
 
-    @app.route("/inventory/<int:id>", methods=["GET", "PUT"])
+    @app.route("/inventory/<int:index>", methods=["GET", "PUT"])
     def inventory_id():
-        return "", 999
+        if request.method == "GET":
+            return vm.inventory[index], 200
+            
 
     return app
