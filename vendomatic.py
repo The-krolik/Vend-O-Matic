@@ -1,6 +1,6 @@
 from flask import Flask
-from flask import jsonify
 from flask import request
+from flask import Response
 
 
 class VendingMachine:
@@ -18,9 +18,9 @@ class VendingMachine:
         self.accepted_coins += 1
 
     def return_coins(self):
-        dispensed_coins = self.accepted_coins
+        returned_coins = self.accepted_coins
         self.accepted_coins = 0
-        return dispensed_coins
+        return returned_coins
 
     def dispense_drink(self, selected_drink):
         if self.accepted_coins < self.DRINK_PRICE:
@@ -40,16 +40,22 @@ def create_vendomatic():
 
     @vendomatic.route("/", methods=["PUT", "DELETE"])
     def home():
-        if request.method == "PUT":
-            return "", 204, {"X-Coins": 1}
+        if request.method == "PUT" and request.json["coin"] == 1:
+            vm.accept_coin()
+            return "", 204, {"X-Coins": vm.accepted_coins}
         elif request.method == "DELETE":
-            return "", 204, {"Content-Type": "application/json"}
+            returned_coins = vm.return_coins()
+            return "", 204, {"X-Coins": returned_coins}
+        else:
+            return "", 404
 
 
-    @vendomatic.get("/inventory")
-    def get_inventory():
-        response = flask.Response("inventory response")
-        response.status_code = 200
-        return response
+    @vendomatic.route("/inventory", methods=["GET"])
+    def inventory():
+        return vm.inventory, 200
+
+    @vendomatic.route("/inventory/<int:id>", methods=["GET", "PUT"])
+    def inventory_id():
+        return "", 999
 
     return vendomatic

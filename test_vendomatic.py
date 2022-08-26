@@ -41,8 +41,8 @@ def test_accept_coin(vm):
 def test_dispense_coins(vm):
     vm.accept_coin()
     total_coins = vm.accepted_coins
-    dispensed_coins = vm.return_coins()
-    assert dispensed_coins == total_coins
+    returned_coins = vm.return_coins()
+    assert returned_coins == total_coins
 
 def test_dispense_drink(vm):
     vm.accepted_coins = vm.DRINK_PRICE - 1
@@ -51,10 +51,10 @@ def test_dispense_drink(vm):
 
     dispensed_drinks_before = vm.dispensed_drinks
     vm.accepted_coins = vm.DRINK_PRICE + 1
-    dispensed_coins = vm.dispense_drink(0)
+    returned_coins = vm.dispense_drink(0)
     dispensed_drinks_after = vm.dispensed_drinks
     assert vm.inventory[0] == vm.MAX_STOCKED - 1
-    assert dispensed_coins == 1
+    assert returned_coins == 1
     assert dispensed_drinks_after == dispensed_drinks_before + 1
 
     # test for out of stock
@@ -65,18 +65,16 @@ def test_dispense_drink(vm):
 
 
 def test_home_put(test_client, cvm):
-    response = test_client.put("/", headers={
-        "coin": 1
-    })
+    response = test_client.put("/", json={"coin": 1})
     cvm.accept_coin()
     assert response.status_code == 204
     assert response.headers["X-Coins"] == str(cvm.accepted_coins)
 
 def test_home_delete(test_client, cvm):
     response = test_client.delete("/")
-    dispensed_coins = cvm.return_coins()
+    returned_coins = cvm.return_coins()
     assert response.status_code == 204
-    assert response.headers["X-Coins"] == str(dispensed_coins)
+    assert response.headers["X-Coins"] == str(returned_coins)
 
 def test_inventory_get(test_client, cvm):
     response = test_client.get("/inventory")
@@ -98,11 +96,11 @@ def test_inventory_id_put(test_client, cvm):
         test_client.put("/")
 
     # buy drink 0
-    dispensed_coins = cvm.dispense_drink(0)
+    returned_coins = cvm.dispense_drink(0)
     response = test_client.put("/inventory/0")
     dispensed_drinks = response.json
     assert response.status_code == 200
-    assert response.headers["X-Coins"] == dispensed_coins
+    assert response.headers["X-Coins"] == returned_coins
     assert response.headers["X-Inventory-Remaining"] == str(cvm.inventory[0])
     assert dispensed_drinks == str(cvm.dispensed_drinks)
 
