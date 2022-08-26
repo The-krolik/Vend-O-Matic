@@ -65,27 +65,40 @@ def test_dispense_drink(vm):
 
 
 def test_home_put(test_client, cvm):
-    response = test_client.put("/", json={"coin": 1})
+    # test giving a coin
     cvm.accept_coin()
+    response = test_client.put("/", json={"coin": 1})
     assert response.status_code == 204
     assert response.headers["X-Coins"] == str(cvm.accepted_coins)
 
+    # test giving multiple coins
+    response = test_client.put("/", json={"coin": 3})
+    assert response.status_code == 404
+
+    # test attempting to give a coin without json body
     response = test_client.put("/")
     assert response.status_code == 404
 
+    # test giving a coin with incorrect content type
+    response = test_client.put("/", data={"coin: 1"})
+    assert response.status_code == 404
+
 def test_home_delete(test_client, cvm):
-    response = test_client.delete("/")
+    # test getting our coins back
     returned_coins = cvm.return_coins()
+    response = test_client.delete("/")
     assert response.status_code == 204
     assert response.headers["X-Coins"] == str(returned_coins)
 
 def test_inventory_get(test_client, cvm):
+    # test retrieving the inventory
     response = test_client.get("/inventory")
     inventory = response.json
     assert response.status_code == 200
     assert inventory == cvm.inventory
 
 def test_inventory_id_get(test_client, cvm):
+    # test getting the number of remaining drinks of each type
     for i in range(0, cvm.NUMBER_OF_DRINKS):
         response = test_client.get(f"/inventory/{i}")
         n = response.text
@@ -107,7 +120,25 @@ def test_inventory_id_put(test_client, cvm):
     assert response.headers["X-Inventory-Remaining"] == str(cvm.inventory[0])
     assert dispensed_drinks == cvm.dispensed_drinks
 
-# oos: out of stock
+# nec: not enough coins
+def test_inventory_id_put_nec(test_client, cvm):
+    # make sure the vending machine has 0 coins
+    cvm.return_coins()
+    test_client.delete("/")
+
+    # attempt to buy drink 0 with no coins
+    response = test_client.put("/inventory/0")
+    assert response.status_code == 403
+    assert response.headers["X-Coins"] == str(cvm.accepted_coins)
+
+    # attempt to buy drink 0 with only one coin
+    if cvm.DRINK_PRICE > 1:
+        cvm.accept_coin()
+        test_client.put("/", json={"coin": 1})
+        response = test_client.put("/inventory/0")
+        assert response.status_code == 403
+        assert response.headers["X-Coins"] == str(cvm.accepted_coins)
+
 def test_inventory_id_put_oos(test_client, cvm):
     # buy drink 0 until out stock
     for i in range(0, cvm.inventory[0]):
@@ -123,15 +154,4 @@ def test_inventory_id_put_oos(test_client, cvm):
     # try to buy it
     response = test_client.put("/inventory/0")
     assert response.status_code == 404
-    assert response.headers["X-Coins"] == str(cvm.accepted_coins)
-
-# nec: not enough coins
-def test_inventory_id_put_nec(test_client, cvm):
-    # make sure the vending machine has 0 coins
-    test_client.delete("/")
-    cvm.return_coins()
-
-    # attempt to buy something
-    response = test_client.put("/inventory/0")
-    assert response.status_code == 403
     assert response.headers["X-Coins"] == str(cvm.accepted_coins)
