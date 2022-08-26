@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import request
 from flask import Response
+import json
 
 
 class VendingMachine:
@@ -24,9 +25,9 @@ class VendingMachine:
 
     def dispense_drink(self, selected_drink):
         if self.accepted_coins < self.DRINK_PRICE:
-            raise ValueError("Not enough coins")
+            return -1
         elif self.inventory[selected_drink] <= 0:
-            raise ValueError("Selected drink is out of stock")
+            return -2
 
         self.inventory[selected_drink] -= 1
         self.dispensed_drinks += 1
@@ -40,7 +41,7 @@ def create_app():
 
     @app.route("/", methods=["PUT", "DELETE"])
     def home():
-        if request.method == "PUT" and request.headers["Content-Type"] == "application/json":
+        if request.method == "PUT" and "coin" in request.json:
             if request.json["coin"] == 1:
                 vm.accept_coin()
                 return "", 204, {"X-Coins": vm.accepted_coins}
@@ -53,12 +54,21 @@ def create_app():
 
     @app.route("/inventory", methods=["GET"])
     def inventory():
-        return vm.inventory, 200
+        return json.dumps(vm.inventory), 200, {"Content-Type": "application/json"}
 
     @app.route("/inventory/<int:index>", methods=["GET", "PUT"])
-    def inventory_id():
+    def inventory_id(index):
         if request.method == "GET":
-            return vm.inventory[index], 200
-            
+            return str(vm.inventory[index]), 200
+        elif request.method == "PUT":
+            returned_coins = vm.dispense_drink(index)    
+            if returned_coins >= 0:
+                return {"quantity": vm.dispensed_drinks}, 200, {"X-Coins": returned_coins, "X-Inventory-Remaining": vm.inventory[index]}
+            elif returned_coins == -1:
+                return "", 403, {"X-Coins": vm.accepted_coins}
+            elif returned_coins == -2:
+                return "", 404, {"X-Coins": vm.accepted_coins}
+        else:
+            return "", 404
 
     return app

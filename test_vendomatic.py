@@ -46,8 +46,8 @@ def test_dispense_coins(vm):
 
 def test_dispense_drink(vm):
     vm.accepted_coins = vm.DRINK_PRICE - 1
-    with pytest.raises(ValueError) as e_info:
-        vm.dispense_drink(0)
+    returned_coins = vm.dispense_drink(0)
+    assert returned_coins == -1
 
     dispensed_drinks_before = vm.dispensed_drinks
     vm.accepted_coins = vm.DRINK_PRICE + 1
@@ -60,8 +60,8 @@ def test_dispense_drink(vm):
     # test for out of stock
     vm.inventory[0] = 0
     vm.accepted_coins = vm.DRINK_PRICE
-    with pytest.raises(ValueError) as e_info:
-        vm.dispense_drink(0)
+    returned_coins = vm.dispense_drink(0)
+    assert returned_coins == -2
 
 
 def test_home_put(test_client, cvm):
@@ -69,6 +69,9 @@ def test_home_put(test_client, cvm):
     cvm.accept_coin()
     assert response.status_code == 204
     assert response.headers["X-Coins"] == str(cvm.accepted_coins)
+
+    response = test_client.put("/")
+    assert response.status_code == 404
 
 def test_home_delete(test_client, cvm):
     response = test_client.delete("/")
@@ -85,7 +88,7 @@ def test_inventory_get(test_client, cvm):
 def test_inventory_id_get(test_client, cvm):
     for i in range(0, cvm.NUMBER_OF_DRINKS):
         response = test_client.get(f"/inventory/{i}")
-        n = response.json
+        n = response.text
         assert response.status_code == 200
         assert n == str(cvm.inventory[i])
 
@@ -93,29 +96,29 @@ def test_inventory_id_put(test_client, cvm):
     # make sure we have enough coins for the purchase
     for i in range(0, cvm.DRINK_PRICE):
         cvm.accept_coin()
-        test_client.put("/")
+        test_client.put("/", json={"coin": 1})
 
     # buy drink 0
     returned_coins = cvm.dispense_drink(0)
     response = test_client.put("/inventory/0")
-    dispensed_drinks = response.json
+    dispensed_drinks = response.json["quantity"]
     assert response.status_code == 200
-    assert response.headers["X-Coins"] == returned_coins
+    assert response.headers["X-Coins"] == str(returned_coins)
     assert response.headers["X-Inventory-Remaining"] == str(cvm.inventory[0])
-    assert dispensed_drinks == str(cvm.dispensed_drinks)
+    assert dispensed_drinks == cvm.dispensed_drinks
 
 # oos: out of stock
 def test_inventory_id_put_oos(test_client, cvm):
     # buy drink 0 until out stock
     for i in range(0, cvm.inventory[0]):
         for j in range(0, cvm.DRINK_PRICE):
-            test_client.put("/")
+            test_client.put("/", json={"coin": 1})
         test_client.put("/inventory/0")
 
     # put in enough coins to attempt to buy another
     for i in range(0, cvm.DRINK_PRICE):
         cvm.accept_coin()
-        test_client.put("/")
+        test_client.put("/", json={"coin": 1})
     
     # try to buy it
     response = test_client.put("/inventory/0")
