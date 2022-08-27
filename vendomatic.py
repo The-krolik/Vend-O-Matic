@@ -33,7 +33,7 @@ class VendingMachine:
 
 
 def create_app():
-    app = Flask("vendomatic")
+    app = Flask(__name__)
     vm = VendingMachine()
 
     @app.route("/", methods=["PUT", "DELETE"])
