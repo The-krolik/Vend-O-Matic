@@ -4,25 +4,25 @@ from flask import Response
 
 
 class VendingMachine:
-    
-    MAX_STOCKED = 5         # This cannot every be less than 0
-    NUMBER_OF_DRINKS = 3    # This cannot ever be leq 0
-    DRINK_PRICE = 2         # This cannot ever be less than 0
+
+    MAX_STOCKED = 5  # This cannot every be less than 0
+    NUMBER_OF_DRINKS = 3  # This cannot ever be leq 0
+    DRINK_PRICE = 2  # This cannot ever be less than 0
 
     def __init__(self) -> None:
         self.accepted_coins = 0
         self.inventory = [self.MAX_STOCKED] * self.NUMBER_OF_DRINKS
         self.dispensed_drinks = 0
-    
-    def accept_coin(self):
+
+    def accept_coin(self) -> int:
         self.accepted_coins += 1
 
-    def return_coins(self):
+    def return_coins(self) -> int:
         returned_coins = self.accepted_coins
         self.accepted_coins = 0
         return returned_coins
 
-    def dispense_drink(self, selected_drink):
+    def dispense_drink(self, selected_drink) -> int:
         if self.accepted_coins < self.DRINK_PRICE:
             return -1
         elif self.inventory[selected_drink] <= 0:
@@ -50,7 +50,6 @@ def create_app():
 
         return "", 400
 
-
     @app.route("/inventory", methods=["GET"])
     def inventory():
         return vm.inventory, 200
@@ -60,9 +59,16 @@ def create_app():
         if request.method == "GET":
             return str(vm.inventory[index]), 200
         elif request.method == "PUT":
-            returned_coins = vm.dispense_drink(index)    
+            returned_coins = vm.dispense_drink(index)
             if returned_coins >= 0:
-                return {"quantity": vm.dispensed_drinks}, 200, {"X-Coins": returned_coins, "X-Inventory-Remaining": vm.inventory[index]}
+                return (
+                    {"quantity": vm.dispensed_drinks},
+                    200,
+                    {
+                        "X-Coins": returned_coins,
+                        "X-Inventory-Remaining": vm.inventory[index],
+                    },
+                )
             elif returned_coins == -1:
                 return "", 403, {"X-Coins": vm.accepted_coins}
             elif returned_coins == -2:
