@@ -40,15 +40,15 @@ def create_app():
 
     @app.route("/", methods=["PUT", "DELETE"])
     def home():
-        if request.method == "PUT" and "coin" in request.json:
-            if request.json["coin"] == 1:
+        if request.method == "PUT":
+            if "coin" in request.json and request.json["coin"] == 1:
                 vm.accept_coin()
                 return "", 204, {"X-Coins": vm.accepted_coins}
         elif request.method == "DELETE":
             returned_coins = vm.return_coins()
             return "", 204, {"X-Coins": returned_coins}
-        else:
-            return "", 404
+
+        return "", 400
 
 
     @app.route("/inventory", methods=["GET"])
@@ -67,7 +67,7 @@ def create_app():
                 return "", 403, {"X-Coins": vm.accepted_coins}
             elif returned_coins == -2:
                 return "", 404, {"X-Coins": vm.accepted_coins}
-        else:
-            return "", 404
+
+        return "", 400
 
     return app

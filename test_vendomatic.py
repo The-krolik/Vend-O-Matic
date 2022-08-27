@@ -73,15 +73,11 @@ def test_home_put(test_client, cvm):
 
     # test giving multiple coins
     response = test_client.put("/", json={"coin": 3})
-    assert response.status_code == 404
+    assert response.status_code == 400
 
     # test attempting to give a coin without json body
     response = test_client.put("/")
-    assert response.status_code == 404
-
-    # test giving a coin with incorrect content type
-    response = test_client.put("/", data={"coin: 1"})
-    assert response.status_code == 404
+    assert response.status_code == 400
 
 def test_home_delete(test_client, cvm):
     # test getting our coins back
