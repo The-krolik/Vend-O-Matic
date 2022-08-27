@@ -12,7 +12,6 @@ class VendingMachine:
     def __init__(self) -> None:
         self.accepted_coins = 0
         self.inventory = [self.MAX_STOCKED] * self.NUMBER_OF_DRINKS
-        self.dispensed_drinks = 0
 
     def accept_coin(self) -> int:
         self.accepted_coins += 1
@@ -29,7 +28,6 @@ class VendingMachine:
             return -2
 
         self.inventory[selected_drink] -= 1
-        self.dispensed_drinks += 1
         self.accepted_coins -= self.DRINK_PRICE
         return self.return_coins()
 
@@ -52,21 +50,22 @@ def create_app():
 
     @app.route("/inventory", methods=["GET"])
     def inventory():
-        return vm.inventory, 200
+        return vm.inventory, 200, {"Content-Type": "application/json"}
 
     @app.route("/inventory/<int:index>", methods=["GET", "PUT"])
     def inventory_id(index):
         if request.method == "GET":
-            return str(vm.inventory[index]), 200
+            return str(vm.inventory[index]), 200, {"Content-Type": "application/json"}
         elif request.method == "PUT":
             returned_coins = vm.dispense_drink(index)
             if returned_coins >= 0:
                 return (
-                    {"quantity": vm.dispensed_drinks},
+                    {"quantity": 1},
                     200,
                     {
                         "X-Coins": returned_coins,
                         "X-Inventory-Remaining": vm.inventory[index],
+                        "Content-Type": "application/json"
                     },
                 )
             elif returned_coins == -1:
