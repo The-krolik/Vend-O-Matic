@@ -65,7 +65,7 @@ def create_app():
                     {
                         "X-Coins": returned_coins,
                         "X-Inventory-Remaining": vm.inventory[index],
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
                 )
             elif returned_coins == -1:
