@@ -76,14 +76,17 @@ def test_home_put(test_client, cvm):
     response = test_client.put("/", json={"coin": 1})
     assert response.status_code == 204
     assert response.headers["X-Coins"] == str(cvm.accepted_coins)
+    assert response.headers["Content-Type"] == "application/json"
 
     # test giving multiple coins
     response = test_client.put("/", json={"coin": 3})
     assert response.status_code == 400
+    assert response.headers["Content-Type"] == "application/json"
 
     # test attempting to give a coin without json body
     response = test_client.put("/")
     assert response.status_code == 400
+    assert response.headers["Content-Type"] == "application/json"
 
 
 def test_home_delete(test_client, cvm):
@@ -92,6 +95,7 @@ def test_home_delete(test_client, cvm):
     response = test_client.delete("/")
     assert response.status_code == 204
     assert response.headers["X-Coins"] == str(returned_coins)
+    assert response.headers["Content-Type"] == "application/json"
 
 
 def test_inventory_get(test_client, cvm):
@@ -100,6 +104,7 @@ def test_inventory_get(test_client, cvm):
     inventory = response.json
     assert response.status_code == 200
     assert inventory == cvm.inventory
+    assert response.headers["Content-Type"] == "application/json"
 
 
 def test_inventory_id_get(test_client, cvm):
@@ -109,6 +114,7 @@ def test_inventory_id_get(test_client, cvm):
         n = response.text
         assert response.status_code == 200
         assert n == str(cvm.inventory[i])
+        assert response.headers["Content-Type"] == "application/json"
 
 
 def test_inventory_id_put(test_client, cvm):
@@ -121,10 +127,11 @@ def test_inventory_id_put(test_client, cvm):
     returned_coins = cvm.dispense_drink(0)
     response = test_client.put("/inventory/0")
     dispensed_drinks = response.json["quantity"]
+    assert dispensed_drinks == 1
     assert response.status_code == 200
     assert response.headers["X-Coins"] == str(returned_coins)
     assert response.headers["X-Inventory-Remaining"] == str(cvm.inventory[0])
-    assert dispensed_drinks == cvm.dispensed_drinks
+    assert response.headers["Content-Type"] == "application/json"
 
 
 # nec: not enough coins
@@ -137,6 +144,7 @@ def test_inventory_id_put_nec(test_client, cvm):
     response = test_client.put("/inventory/0")
     assert response.status_code == 403
     assert response.headers["X-Coins"] == str(cvm.accepted_coins)
+    assert response.headers["Content-Type"] == "application/json"
 
     # attempt to buy drink 0 with only one coin
     if cvm.DRINK_PRICE > 1:
@@ -145,6 +153,7 @@ def test_inventory_id_put_nec(test_client, cvm):
         response = test_client.put("/inventory/0")
         assert response.status_code == 403
         assert response.headers["X-Coins"] == str(cvm.accepted_coins)
+        assert response.headers["Content-Type"] == "application/json"
 
 
 def test_inventory_id_put_oos(test_client, cvm):
@@ -163,3 +172,4 @@ def test_inventory_id_put_oos(test_client, cvm):
     response = test_client.put("/inventory/0")
     assert response.status_code == 404
     assert response.headers["X-Coins"] == str(cvm.accepted_coins)
+    assert response.headers["Content-Type"] == "application/json"
