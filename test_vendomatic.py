@@ -55,13 +55,10 @@ def test_dispense_drink(vm):
     returned_coins = vm.dispense_drink(0)
     assert returned_coins == -1
 
-    dispensed_drinks_before = vm.dispensed_drinks
     vm.accepted_coins = vm.DRINK_PRICE + 1
     returned_coins = vm.dispense_drink(0)
-    dispensed_drinks_after = vm.dispensed_drinks
     assert vm.inventory[0] == vm.MAX_STOCKED - 1
     assert returned_coins == 1
-    assert dispensed_drinks_after == dispensed_drinks_before + 1
 
     # test for out of stock
     vm.inventory[0] = 0
@@ -76,17 +73,14 @@ def test_home_put(test_client, cvm):
     response = test_client.put("/", json={"coin": 1})
     assert response.status_code == 204
     assert response.headers["X-Coins"] == str(cvm.accepted_coins)
-    assert response.headers["Content-Type"] == "application/json"
 
     # test giving multiple coins
     response = test_client.put("/", json={"coin": 3})
     assert response.status_code == 400
-    assert response.headers["Content-Type"] == "application/json"
 
     # test attempting to give a coin without json body
     response = test_client.put("/")
     assert response.status_code == 400
-    assert response.headers["Content-Type"] == "application/json"
 
 
 def test_home_delete(test_client, cvm):
@@ -95,7 +89,6 @@ def test_home_delete(test_client, cvm):
     response = test_client.delete("/")
     assert response.status_code == 204
     assert response.headers["X-Coins"] == str(returned_coins)
-    assert response.headers["Content-Type"] == "application/json"
 
 
 def test_inventory_get(test_client, cvm):
@@ -144,7 +137,6 @@ def test_inventory_id_put_nec(test_client, cvm):
     response = test_client.put("/inventory/0")
     assert response.status_code == 403
     assert response.headers["X-Coins"] == str(cvm.accepted_coins)
-    assert response.headers["Content-Type"] == "application/json"
 
     # attempt to buy drink 0 with only one coin
     if cvm.DRINK_PRICE > 1:
@@ -153,7 +145,6 @@ def test_inventory_id_put_nec(test_client, cvm):
         response = test_client.put("/inventory/0")
         assert response.status_code == 403
         assert response.headers["X-Coins"] == str(cvm.accepted_coins)
-        assert response.headers["Content-Type"] == "application/json"
 
 
 def test_inventory_id_put_oos(test_client, cvm):
@@ -172,4 +163,3 @@ def test_inventory_id_put_oos(test_client, cvm):
     response = test_client.put("/inventory/0")
     assert response.status_code == 404
     assert response.headers["X-Coins"] == str(cvm.accepted_coins)
-    assert response.headers["Content-Type"] == "application/json"
