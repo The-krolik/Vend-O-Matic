@@ -55,8 +55,15 @@ def create_app():
     @app.route("/inventory/<int:index>", methods=["GET", "PUT"])
     def inventory_id(index):
         if request.method == "GET":
-            return str(vm.inventory[index]), 200, {"Content-Type": "application/json"}
+            if index not in range(0, len(vm.inventory)):
+                return "", 400
+            else:
+                return str(vm.inventory[index]), 200, {"Content-Type": "application/json"}
+
         elif request.method == "PUT":
+            if index not in range(0, len(vm.inventory)):
+                return "", 400
+
             returned_coins = vm.dispense_drink(index)
             if returned_coins >= 0:
                 return (

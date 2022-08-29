@@ -12,4 +12,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD [ "python3", "-m", "flask", "--app=vendomatic.py", "run"] 
+CMD [ "python3", "-m", "flask", "--app=vendomatic.py", "run", "-p", "8000", "-h", "0.0.0.0"] 
