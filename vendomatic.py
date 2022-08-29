@@ -5,7 +5,7 @@ from flask import Response
 
 class VendingMachine:
 
-    MAX_STOCKED = 5  # This cannot every be less than 0
+    MAX_STOCKED = 5  # This cannot ever be less than 0
     NUMBER_OF_DRINKS = 3  # This cannot ever be leq 0
     DRINK_PRICE = 2  # This cannot ever be less than 0
 
