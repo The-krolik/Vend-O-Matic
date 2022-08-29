@@ -132,7 +132,7 @@ def test_inventory_id_put(test_client, cvm):
     assert response.headers["Content-Type"] == "application/json"
 
 
-def test_inventory_id_put_oob(test_client, cvm): # oob: out of bounds
+def test_inventory_id_put_oob(test_client, cvm):  # oob: out of bounds
     # make sure we have enough coins for the purchase
     for i in range(0, cvm.DRINK_PRICE):
         cvm.accept_coin()
@@ -144,7 +144,7 @@ def test_inventory_id_put_oob(test_client, cvm): # oob: out of bounds
     assert response.status_code == 400
 
 
-def test_inventory_id_put_nec(test_client, cvm): # nec: not enough coins
+def test_inventory_id_put_nec(test_client, cvm):  # nec: not enough coins
     # make sure the vending machine has 0 coins
     cvm.return_coins()
     test_client.delete("/")
@@ -163,7 +163,7 @@ def test_inventory_id_put_nec(test_client, cvm): # nec: not enough coins
         assert response.headers["X-Coins"] == str(cvm.accepted_coins)
 
 
-def test_inventory_id_put_oos(test_client, cvm): # oos: out of stock
+def test_inventory_id_put_oos(test_client, cvm):  # oos: out of stock
     # buy drink 0 until out stock
     for i in range(0, cvm.inventory[0]):
         for j in range(0, cvm.DRINK_PRICE):

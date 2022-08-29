@@ -58,7 +58,11 @@ def create_app():
             if index not in range(0, len(vm.inventory)):
                 return "", 400
             else:
-                return str(vm.inventory[index]), 200, {"Content-Type": "application/json"}
+                return (
+                    str(vm.inventory[index]),
+                    200,
+                    {"Content-Type": "application/json"},
+                )
 
         elif request.method == "PUT":
             if index not in range(0, len(vm.inventory)):
